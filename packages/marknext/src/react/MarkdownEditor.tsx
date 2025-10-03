@@ -4,6 +4,7 @@ import type { EditorExtension, EditorOptions } from '../lib/types'
 // TipTap provides link mark; custom linksExtension no longer used by default
 import { SlashMenu } from './SlashMenu'
 import { SelectionBubble } from './SelectionBubble'
+import { CodeBlockToolbar } from './CodeBlockToolbar'
 
 export type MarkdownEditorProps = {
   defaultMarkdown?: string
@@ -78,6 +79,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
         <div ref={containerRef} />
         {editorRef.current && <SlashMenu editor={editorRef.current} />}
         {editorRef.current && <SelectionBubble editor={editorRef.current} />}
+        {editorRef.current && <CodeBlockToolbar editor={editorRef.current} />}
 
         {/* TODO: Bubble/Floating menu: TipTap v3 no longer ships them in @tiptap/react. */}
         <div style={{ marginTop: 12, fontSize: 12, color: '#64748b' }}>Markdown Preview:</div>

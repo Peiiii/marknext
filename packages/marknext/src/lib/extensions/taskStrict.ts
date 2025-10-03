@@ -3,7 +3,8 @@ import TaskItem from '@tiptap/extension-task-item'
 
 // Trigger at line start for: "- [ ] ", "* [ ] ", and also "[] " / "[x] "
 const strictTaskRegexBullet = /^\s*[-*]\s\[([ xX])\]\s$/
-const strictTaskRegexBare = /^\s*\[([ xX])\]\s$/
+// Accept empty brackets: "[] " -> unchecked
+const strictTaskRegexBare = /^\s*\[([ xX]?)\]\s$/
 
 export const TaskItemStrict = TaskItem.extend({
   addInputRules() {

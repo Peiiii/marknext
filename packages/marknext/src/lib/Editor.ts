@@ -189,6 +189,30 @@ export class Editor {
   }
 
   #onKeydown(e: KeyboardEvent): void {
+    // Smart navigation: ArrowDown at end of blockquote -> insert empty paragraph after
+    if (e.key === 'ArrowDown') {
+      const { state } = this.#tiptap
+      const { $from } = state.selection
+      let depth: number | null = null
+      for (let d = $from.depth; d > 0; d--) {
+        if ($from.node(d).type.name === 'blockquote') { depth = d; break }
+      }
+      if (depth != null) {
+        const atEnd = $from.parentOffset === $from.parent.content.size
+        if (atEnd) {
+          e.preventDefault()
+          const insertPos = $from.after(depth)
+          this.#tiptap
+            .chain()
+            .focus()
+            .insertContentAt(insertPos, { type: 'paragraph' })
+            .setTextSelection(insertPos + 1)
+            .run()
+          return
+        }
+      }
+    }
+
     const combo = normalizeKey(e)
     const cmdId = this.#keymap.get(combo)
     if (!cmdId) return

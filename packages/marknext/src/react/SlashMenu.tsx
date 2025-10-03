@@ -103,7 +103,7 @@ export function SlashMenu({ editor }: SlashMenuProps) {
     setOpen(false)
   }
 
-  // Recompute menu placement to avoid overflow
+  // Recompute menu placement to avoid overflow and keep active item visible
   if (open && menuRef.current) {
     const rect = menuRef.current.getBoundingClientRect()
     const margin = 8
@@ -112,6 +112,11 @@ export function SlashMenu({ editor }: SlashMenuProps) {
     const maxLeft = Math.max(8, Math.min(pos.x, window.innerWidth - rect.width - 8))
     if (top !== menuTop) setMenuTop(top)
     if (maxLeft !== menuLeft) setMenuLeft(maxLeft)
+    const buttons = Array.from(menuRef.current.querySelectorAll('button')) as HTMLElement[]
+    const active = buttons[selIndex]
+    if (active && typeof active.scrollIntoView === 'function') {
+      active.scrollIntoView({ block: 'nearest' })
+    }
   }
 
   if (!open) return null
