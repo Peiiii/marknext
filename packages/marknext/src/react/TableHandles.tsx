@@ -9,6 +9,8 @@ export function TableHandles({ editor }: Props) {
   const [cellRect, setCellRect] = useState<DOMRect | null>(null)
   const [rowMenuPos, setRowMenuPos] = useState<Pos | null>(null)
   const [colMenuPos, setColMenuPos] = useState<Pos | null>(null)
+  const [isHovering, setIsHovering] = useState(false)
+  const [hideTimeout, setHideTimeout] = useState<number | null>(null)
   const root = editor.getRoot()
 
   const compute = useCallback(() => {
@@ -29,22 +31,45 @@ export function TableHandles({ editor }: Props) {
     const onSel = () => compute()
     const onScroll = () => compute()
     const onResize = () => compute()
+    const onMouseMove = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      const table = target.closest('table')
+      if (table) {
+        setIsHovering(true)
+        if (hideTimeout) {
+          clearTimeout(hideTimeout)
+          setHideTimeout(null)
+        }
+      }
+    }
+    const onMouseLeave = () => {
+      const timeout = setTimeout(() => {
+        setIsHovering(false)
+      }, 300)
+      setHideTimeout(timeout)
+    }
+    
     document.addEventListener('selectionchange', onSel)
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseleave', onMouseLeave)
     window.addEventListener('scroll', onScroll, true)
     window.addEventListener('resize', onResize)
     compute()
     return () => {
       off()
+      if (hideTimeout) clearTimeout(hideTimeout)
       document.removeEventListener('selectionchange', onSel)
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseleave', onMouseLeave)
       window.removeEventListener('scroll', onScroll, true)
       window.removeEventListener('resize', onResize)
     }
-  }, [editor, compute])
+  }, [editor, compute, hideTimeout])
 
   const tiptap = editor.getTiptap()
   const chain = () => tiptap.chain().focus()
 
-  if (!cellRect) return null
+  if (!cellRect || !isHovering) return null
 
   // Handle positions anchored to table boundaries
   const cellEl = document.elementFromPoint(cellRect.left + 1, cellRect.top + 1)?.closest('td,th') as HTMLElement | null
@@ -57,7 +82,25 @@ export function TableHandles({ editor }: Props) {
     <button
       type="button"
       onClick={props.onClick}
-      style={{ padding: '4px 8px', fontSize: 12, border: '1px solid #e5e7eb', background: '#fff', borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+      style={{ 
+        padding: '6px 12px', 
+        fontSize: 13, 
+        border: 'none', 
+        background: 'rgba(0,0,0,0.8)', 
+        color: '#fff', 
+        borderRadius: 4, 
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        fontWeight: 500
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = 'rgba(0,0,0,0.9)'
+        e.currentTarget.style.transform = 'translateY(-1px)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'rgba(0,0,0,0.8)'
+        e.currentTarget.style.transform = 'translateY(0)'
+      }}
     >{props.label}</button>
   )
 
@@ -66,13 +109,41 @@ export function TableHandles({ editor }: Props) {
       {/* Row handle */}
       <button
         type="button"
-        style={{ position: 'fixed', left: rowHandle.x, top: rowHandle.y, transform: 'translate(-50%, -50%)', width: 12, height: 24, borderRadius: 6, background: '#2563eb', border: '1px solid #1d4ed8', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', cursor: 'pointer', zIndex: 60 }}
+        style={{ 
+          position: 'fixed', 
+          left: rowHandle.x, 
+          top: rowHandle.y, 
+          transform: 'translate(-50%, -50%)', 
+          width: 8, 
+          height: 16, 
+          borderRadius: 2, 
+          background: 'rgba(0,0,0,0.6)', 
+          border: 'none', 
+          cursor: 'pointer', 
+          zIndex: 60, 
+          opacity: 1,
+          transition: 'opacity 0.2s ease'
+        }}
         onClick={() => setRowMenuPos({ x: rowHandle.x + 18, y: rowHandle.y })}
         aria-label="Row actions"
       />
       {rowMenuPos && (
         <div
-          style={{ position: 'fixed', left: rowMenuPos.x, top: rowMenuPos.y, transform: 'translateY(-50%)', display: 'flex', gap: 6, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 6, zIndex: 61, boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}
+          style={{ 
+            position: 'fixed', 
+            left: rowMenuPos.x, 
+            top: rowMenuPos.y, 
+            transform: 'translateY(-50%)', 
+            display: 'flex', 
+            gap: 4, 
+            background: 'rgba(0,0,0,0.9)', 
+            border: 'none', 
+            borderRadius: 6, 
+            padding: 4, 
+            zIndex: 61, 
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            backdropFilter: 'blur(8px)'
+          }}
           onMouseLeave={() => setRowMenuPos(null)}
         >
           <MenuBtn label="+Above" onClick={() => { chain().addRowBefore().run(); setRowMenuPos(null) }} />
@@ -85,13 +156,41 @@ export function TableHandles({ editor }: Props) {
       {/* Column handle */}
       <button
         type="button"
-        style={{ position: 'fixed', left: colHandle.x, top: colHandle.y, transform: 'translate(-50%, -50%)', width: 24, height: 12, borderRadius: 6, background: '#2563eb', border: '1px solid #1d4ed8', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', cursor: 'pointer', zIndex: 60 }}
+        style={{ 
+          position: 'fixed', 
+          left: colHandle.x, 
+          top: colHandle.y, 
+          transform: 'translate(-50%, -50%)', 
+          width: 16, 
+          height: 8, 
+          borderRadius: 2, 
+          background: 'rgba(0,0,0,0.6)', 
+          border: 'none', 
+          cursor: 'pointer', 
+          zIndex: 60, 
+          opacity: 1,
+          transition: 'opacity 0.2s ease'
+        }}
         onClick={() => setColMenuPos({ x: colHandle.x, y: colHandle.y + 18 })}
         aria-label="Column actions"
       />
       {colMenuPos && (
         <div
-          style={{ position: 'fixed', left: colMenuPos.x, top: colMenuPos.y, transform: 'translate(-50%, 0)', display: 'flex', gap: 6, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 6, zIndex: 61, boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}
+          style={{ 
+            position: 'fixed', 
+            left: colMenuPos.x, 
+            top: colMenuPos.y, 
+            transform: 'translate(-50%, 0)', 
+            display: 'flex', 
+            gap: 4, 
+            background: 'rgba(0,0,0,0.9)', 
+            border: 'none', 
+            borderRadius: 6, 
+            padding: 4, 
+            zIndex: 61, 
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            backdropFilter: 'blur(8px)'
+          }}
           onMouseLeave={() => setColMenuPos(null)}
         >
           <MenuBtn label="+Left" onClick={() => { chain().addColumnBefore().run(); setColMenuPos(null) }} />

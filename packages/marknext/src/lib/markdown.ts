@@ -53,7 +53,7 @@ export const markdownToHtml = (md: string): string => {
     type Frame = { task: boolean; indent: number; items: string[] }
     const stack: Frame[] = []
     let html = ''
-    const pushRendered = (f: Frame) => `<ul${f.task ? ' class="task-list"' : ''}>${f.items.join('')}</ul>`
+    const pushRendered = (f: Frame) => `<ul${f.task ? ' class="task-list" data-type="taskList"' : ''}>${f.items.join('')}</ul>`
     for (const line of lines) {
       const m = line.match(/^(\s*)([-*])\s+(.*)$/)
       if (!m) continue
@@ -161,14 +161,17 @@ const nodeToMd = (node: Node): string => {
       return `${'#'.repeat(level)} ${inlineToMd(node)}`
     }
     case 'ul': {
+      const isTaskList = node.classList.contains('task-list') || node.getAttribute('data-type') === 'taskList'
       const items = [...node.children]
         .filter((el): el is HTMLLIElement => el.tagName.toLowerCase() === 'li')
         .map((li) => {
-          const input = li.querySelector('input[type="checkbox"]') as HTMLInputElement | null
-          if (input) {
-            const checked = input.checked ? 'x' : ' '
-            const label = inlineToMd(li).replace(/^\s*\[.*\]\s*/, '')
-            return `- [${checked}] ${label}`
+          if (isTaskList) {
+            const input = li.querySelector('input[type="checkbox"]') as HTMLInputElement | null
+            if (input) {
+              const checked = input.checked ? 'x' : ' '
+              const label = li.querySelector('div')?.textContent?.trim() || li.textContent?.trim() || ''
+              return `- [${checked}] ${label}`
+            }
           }
           return `- ${inlineToMd(li)}`
         })
@@ -180,6 +183,32 @@ const nodeToMd = (node: Node): string => {
         .filter((el): el is HTMLLIElement => el.tagName.toLowerCase() === 'li')
         .map((li) => `${i++}. ${inlineToMd(li)}`)
       return items.join('\n')
+    }
+    case 'table': {
+      const thead = node.querySelector('thead')
+      const tbody = node.querySelector('tbody') ?? node
+      const headers: string[] = []
+      const aligns: string[] = []
+      const headerRow = thead?.querySelector('tr') ?? node.querySelector('tr')
+      if (headerRow) {
+        headerRow.querySelectorAll('th,td').forEach((cell) => {
+          headers.push(inlineToMd(cell))
+          const align = (cell as HTMLElement).style.textAlign
+          aligns.push(align)
+        })
+      }
+      const md: string[] = []
+      if (headers.length) {
+        md.push(`| ${headers.join(' | ')} |`)
+        const delim = aligns.map((a) => (a === 'center' ? ':-:' : a === 'right' ? '---:' : ':---')).join(' | ')
+        md.push(`| ${delim} |`)
+      }
+      const bodyRows = (tbody.tagName.toLowerCase() === 'tbody' ? Array.from(tbody.querySelectorAll('tr')) : Array.from(node.querySelectorAll('tr')).slice(1))
+      bodyRows.forEach((tr) => {
+        const cells = Array.from(tr.querySelectorAll('td,th')).map((c) => inlineToMd(c))
+        if (cells.length) md.push(`| ${cells.join(' | ')} |`)
+      })
+      return md.join('\n')
     }
     case 'pre': {
       const code = node.querySelector('code')

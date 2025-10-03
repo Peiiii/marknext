@@ -10,9 +10,10 @@ import Strike from '@tiptap/extension-strike'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table'
-// import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { createLowlight } from 'lowlight'
 import TextAlign from '@tiptap/extension-text-align'
+import { Markdown } from 'tiptap-markdown'
 import javascript from 'highlight.js/lib/languages/javascript'
 import typescript from 'highlight.js/lib/languages/typescript'
 import json from 'highlight.js/lib/languages/json'
@@ -99,7 +100,12 @@ export class Editor {
         TableRow,
         TableHeader,
         TableCell,
-        CodeBlockWithHeader.configure({ lowlight }),
+        CodeBlockLowlight.configure({ lowlight }),
+        Markdown.configure({
+          html: true,
+          transformPastedText: true,
+          transformCopiedText: true,
+        }),
       ],
       content: markdownToHtml(options.initialMarkdown ?? ''),
       onUpdate: () => this.#onUpdate(),
@@ -335,7 +341,10 @@ export class Editor {
     this.registerCommand({ id: 'deleteTable', label: 'Delete Table', run: () => this.#tiptap.chain().focus().deleteTable().run() })
 
     // Clipboard helpers
-    this.registerCommand({ id: 'copyAsMarkdown', label: 'Copy As Markdown', run: () => copyTextToClipboard(this.getMarkdown()) })
+    this.registerCommand({ id: 'copyAsMarkdown', label: 'Copy As Markdown', run: () => {
+      const markdown = this.getMarkdown()
+      return copyTextToClipboard(markdown)
+    }})
     this.registerCommand({ id: 'pasteMarkdown', label: 'Paste Markdown', run: () => {
       if (!('clipboard' in navigator) || typeof navigator.clipboard.readText !== 'function') return false
       void navigator.clipboard.readText().then((txt) => {
@@ -458,4 +467,3 @@ function isLikelyMarkdown(s: string): boolean {
 }
 
 // TipTap provides commands; no DOM execCommand helpers needed here
-import { CodeBlockWithHeader } from './extensions/codeBlockHeader'
