@@ -393,7 +393,7 @@ export class Editor {
       .mx-editor h2 { font-size: 1.5em; margin: 0.75em 0 0.4em; font-weight: 600; line-height: 1.3; }
       .mx-editor h3 { font-size: 1.25em; margin: 0.6em 0 0.3em; font-weight: 600; line-height: 1.35; }
       .mx-editor p { margin: 0.5em 0; }
-      .mx-editor ul, .mx-editor ol { padding-left: 1.25em; margin: 0.4em 0; }
+      .mx-editor ul, .mx-editor ol { padding-left: 1.1em; margin: 0.4em 0; }
       .mx-editor ul ul, .mx-editor ul ol, .mx-editor ol ul, .mx-editor ol ol { padding-left: 1.25em; }
       .mx-editor a { color: #2563eb; text-decoration: none; }
       .mx-editor a:hover { text-decoration: underline; }
@@ -406,13 +406,14 @@ export class Editor {
       .mx-codeblock pre { margin: 0; border-radius: 0; }
       .mx-editor hr { border: 0; height: 1px; background: #cbd5e1; margin: 16px 0; }
       .mx-editor blockquote { border-left: 4px solid #e5e7eb; padding-left: 12px; color: #475569; margin: 8px 0; background: #f9fafb; }
-      .mx-editor ul.task-list { list-style: none; padding-left: 1.25em; }
-      .mx-editor ul.task-list li { display: flex; gap: 8px; align-items: center; }
-      .mx-editor ul[data-type="taskList"] { list-style: none; padding-left: 1.25em; }
+      .mx-editor ul.task-list { list-style: none; padding-left: 1.1em; }
+      .mx-editor ul.task-list li { display: flex; gap: 6px; align-items: center; }
+      .mx-editor ul[data-type="taskList"] { list-style: none; padding-left: 1.1em; }
       .mx-editor ul[data-type="taskList"] li { list-style: none; display: flex; gap: 8px; align-items: center; }
-      .mx-editor li[data-type="taskItem"] > label { display: inline-flex; align-items: center; gap: 8px; pointer-events: none; }
+      .mx-editor li[data-type="taskItem"] > label { display: inline-flex; align-items: center; gap: 6px; pointer-events: none; }
       .mx-editor li[data-type="taskItem"] > label > input[type="checkbox"] { pointer-events: auto; margin: 0 6px 0 2px; }
       .mx-editor li[data-type="taskItem"] > div { flex: 1 1 auto; min-height: 1.4em; }
+      .mx-editor li[data-type="taskItem"] > div:empty::before { content: "\\200B"; }
       .mx-editor table { border-collapse: collapse; width: 100%; margin: 8px 0; table-layout: fixed; }
       .mx-editor th, .mx-editor td { border: 1px solid #e2e8f0; padding: 6px 8px; word-break: break-word; vertical-align: top; }
       .mx-editor th { background: #f1f5f9; }
