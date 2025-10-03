@@ -1,3 +1,8 @@
+---
+alwaysApply: true
+description: Git提交和代码质量验证规则
+---
+
 # Git提交规则
 
 ## 核心原则
@@ -14,8 +19,3 @@
 3. 执行 `git add .`
 4. 生成英文commit message
 5. 执行 `git commit -m "message"`
-
----
-alwaysApply: true
-description: Git提交和代码质量验证规则
----
