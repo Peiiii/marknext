@@ -55,16 +55,20 @@ export function TableToolbar({ editor }: Props) {
 
   return (
     <div ref={ref} style={{ position: 'fixed', left: pos.x, top: pos.y, display: 'flex', gap: 6, zIndex: 60 }}>
-      <Btn label="+Row" onClick={() => chain().addRowAfter().run()} />
-      <Btn label="+Col" onClick={() => chain().addColumnAfter().run()} />
+      <Btn label="Row+" onClick={() => chain().addRowAfter().run()} />
+      <Btn label="Row-" onClick={() => chain().addRowBefore().run()} />
+      <Btn label="Col+" onClick={() => chain().addColumnAfter().run()} />
+      <Btn label="Col-" onClick={() => chain().addColumnBefore().run()} />
       <Btn label="-Row" onClick={() => chain().deleteRow().run()} />
       <Btn label="-Col" onClick={() => chain().deleteColumn().run()} />
       <Btn label="Merge" onClick={() => chain().mergeCells().run()} />
       <Btn label="Split" onClick={() => chain().splitCell().run()} />
       <Btn label="HdrRow" onClick={() => chain().toggleHeaderRow().run()} />
       <Btn label="HdrCol" onClick={() => chain().toggleHeaderColumn().run()} />
+      <Btn label="L" onClick={() => chain().setTextAlign('left').run()} />
+      <Btn label="C" onClick={() => chain().setTextAlign('center').run()} />
+      <Btn label="R" onClick={() => chain().setTextAlign('right').run()} />
       <Btn label="DelTable" onClick={() => chain().deleteTable().run()} />
     </div>
   )
 }
-

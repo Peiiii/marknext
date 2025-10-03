@@ -10,7 +10,7 @@ import Strike from '@tiptap/extension-strike'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table'
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+// import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { createLowlight } from 'lowlight'
 import TextAlign from '@tiptap/extension-text-align'
 import javascript from 'highlight.js/lib/languages/javascript'
@@ -99,7 +99,7 @@ export class Editor {
         TableRow,
         TableHeader,
         TableCell,
-        CodeBlockLowlight.configure({ lowlight }),
+        CodeBlockWithHeader.configure({ lowlight }),
       ],
       content: markdownToHtml(options.initialMarkdown ?? ''),
       onUpdate: () => this.#onUpdate(),
@@ -112,6 +112,8 @@ export class Editor {
     // Paste & drop support for images (base64 fallback)
     this.#editable.addEventListener('paste', (e) => this.#onPaste(e))
     this.#editable.addEventListener('drop', (e) => this.#onDrop(e))
+    // Improve task item focus behavior: clicking on task line places caret instead of toggling checkbox
+    this.#editable.addEventListener('mousedown', (e) => this.#onMouseDown(e), true)
 
     // Built-in minimal styling placeholder support
     this.#injectBaseStyles()
@@ -260,6 +262,26 @@ export class Editor {
     }
   }
 
+  #onMouseDown(e: MouseEvent): void {
+    const target = e.target as HTMLElement
+    const li = target.closest('li[data-type="taskItem"]') as HTMLElement | null
+    if (!li) return
+    const isCheckbox = (target as HTMLInputElement).type === 'checkbox'
+    if (isCheckbox) return
+    // Place caret at coords
+    e.preventDefault()
+    const view = (this.#tiptap as unknown as { view: { posAtCoords: (coords: { left: number; top: number }) => { pos: number } | null } }).view
+    const posInfo = view.posAtCoords({ left: e.clientX, top: e.clientY })
+    if (posInfo) {
+      this.#tiptap.chain().focus().setTextSelection(posInfo.pos).run()
+    } else {
+      // fallback: set to end of this task item
+      const { state } = this.#tiptap
+      const { $from } = state.selection
+      this.#tiptap.chain().focus().setTextSelection($from.end()).run()
+    }
+  }
+
   #insertImageFile(file: File): void {
     const reader = new FileReader()
     reader.onload = () => {
@@ -324,6 +346,16 @@ export class Editor {
       })
       return true
     } })
+    this.registerCommand({ id: 'pastePlainText', label: 'Paste Plain Text', run: () => {
+      if (!('clipboard' in navigator) || typeof navigator.clipboard.readText !== 'function') return false
+      void navigator.clipboard.readText().then((txt) => {
+        if (!txt) return
+        const paraNodes = txt.replace(/\r\n?/g,'\n').split('\n').map((line) => ({ type: 'paragraph', content: line ? [{ type: 'text', text: line }] : [] }))
+        this.#tiptap.chain().focus().insertContent(paraNodes).run()
+        this.#onUpdate()
+      })
+      return true
+    } })
 
     // Keymap (avoid duplicating bold/italic which TipTap already handles)
     this.bindKey({ keys: 'Mod-b', command: 'toggleBold' })
@@ -341,6 +373,7 @@ export class Editor {
     this.bindKey({ keys: 'Mod-Shift-j', command: 'alignJustify' })
     this.bindKey({ keys: 'Mod-Shift-c', command: 'copyAsMarkdown' })
     this.bindKey({ keys: 'Mod-Shift-v', command: 'pasteMarkdown' })
+    this.bindKey({ keys: 'Mod-Alt-v', command: 'pastePlainText' })
   }
 
   #injectBaseStyles(): void {
@@ -366,17 +399,21 @@ export class Editor {
       .mx-editor a:hover { text-decoration: underline; }
       .mx-editor pre { background: #f5f7fa; color: #0f172a; padding: 12px; border-radius: 8px; overflow: auto; }
       .mx-editor code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.95em; }
+      /* Code block with header */
+      .mx-codeblock { position: relative; }
+      .mx-codeblock__header { position: sticky; top: 0; display: flex; justify-content: flex-end; padding: 4px 6px; background: #eef2f7; border-bottom: 1px solid #e5e7eb; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+      .mx-codeblock__lang { background: #ffffff; color: #0f172a; border: 1px solid #e5e7eb; border-radius: 6px; padding: 2px 6px; font-size: 12px; }
       .mx-editor hr { border: 0; height: 1px; background: #cbd5e1; margin: 16px 0; }
       .mx-editor blockquote { border-left: 4px solid #e5e7eb; padding-left: 12px; color: #475569; margin: 8px 0; background: #f9fafb; }
       .mx-editor ul.task-list { list-style: none; padding-left: 1.25em; }
       .mx-editor ul.task-list li { display: flex; gap: 8px; align-items: center; }
       .mx-editor ul[data-type="taskList"] { list-style: none; padding-left: 1.25em; }
       .mx-editor ul[data-type="taskList"] li { list-style: none; display: flex; gap: 8px; align-items: center; }
-      .mx-editor li[data-type="taskItem"] > label { display: flex; align-items: center; gap: 8px; width: 100%; }
-      .mx-editor li[data-type="taskItem"] > label > input[type="checkbox"] { margin: 0 6px 0 2px; }
-      .mx-editor li[data-type="taskItem"] > label > div { flex: 1 1 auto; min-height: 1.4em; }
-      .mx-editor table { border-collapse: collapse; width: 100%; margin: 8px 0; }
-      .mx-editor th, .mx-editor td { border: 1px solid #e2e8f0; padding: 6px 8px; }
+      .mx-editor li[data-type="taskItem"] > label { display: inline-flex; align-items: center; gap: 8px; pointer-events: none; }
+      .mx-editor li[data-type="taskItem"] > label > input[type="checkbox"] { pointer-events: auto; margin: 0 6px 0 2px; }
+      .mx-editor li[data-type="taskItem"] > div { flex: 1 1 auto; min-height: 1.4em; }
+      .mx-editor table { border-collapse: collapse; width: 100%; margin: 8px 0; table-layout: fixed; }
+      .mx-editor th, .mx-editor td { border: 1px solid #e2e8f0; padding: 6px 8px; word-break: break-word; vertical-align: top; }
       .mx-editor th { background: #f1f5f9; }
       /* Lowlight (hljs) minimal colors for light theme */
       .mx-editor pre code.hljs { background: transparent; }
@@ -419,3 +456,4 @@ function isLikelyMarkdown(s: string): boolean {
 }
 
 // TipTap provides commands; no DOM execCommand helpers needed here
+import { CodeBlockWithHeader } from './extensions/codeBlockHeader'

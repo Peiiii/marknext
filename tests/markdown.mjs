@@ -15,9 +15,9 @@ test('unordered list', () => {
 
 test('task list', () => {
   const html = markdownToHtml('- [ ] todo\n- [x] done')
-  assert.match(html, /<ul class=\"task-list\">/)
-  assert.match(html, /<input type=\"checkbox\" \/>\s*todo/)
-  assert.match(html, /<input type=\"checkbox\" checked \/>\s*done/)
+  assert.match(html, /<ul class=\"task-list\"/)
+  assert.match(html, /<input type=\"checkbox\"[^>]*>[\s\S]*?todo/)
+  assert.match(html, /<input type=\"checkbox\" checked[^>]*>[\s\S]*?done/)
 })
 
 test('blockquote', () => {
@@ -29,4 +29,3 @@ test('hr', () => {
   const html = markdownToHtml('---')
   assert.equal(html.trim(), '<hr/>')
 })
-

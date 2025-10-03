@@ -27,24 +27,54 @@ export const markdownToHtml = (md: string): string => {
     return `${lead}<ol>${items}</ol>`
   })
 
-  // Unordered lists
-  src = src.replace(/(^|\n)([-*]\s+.+(?:\n[-*]\s+.+)*)/g, (_m, lead, block) => {
-    const lines = (block as string).split(/\n/)
-    const isTask = lines.every((l) => /^[-*]\s+\[[ xX]\]\s+/.test(l))
-    const items = lines
-      .map((line: string) => line.replace(/^[-*]\s+/, '').trim())
-      .map((t: string) => {
-        const m = t.match(/^\[([ xX])\]\s+(.+)/)
-        if (m) {
-          const checked = m[1].toLowerCase() === 'x'
-          const label = inlineToHtml(m[2])
-          return `<li data-task="true"><input type="checkbox" ${checked ? 'checked ' : ''}/> ${label}</li>`
-        }
-        return `<li>${inlineToHtml(t)}</li>`
-      })
-      .join('')
-    const ulClass = isTask ? ' class="task-list"' : ''
-    return `${lead}<ul${ulClass}>${items}</ul>`
+  // Pipe tables (basic GFM style)
+  src = src.replace(/(^|\n)(\|[^\n]+\|\n\|[-:\s|]+\|\n(?:\|[^\n]+\|\n?)*)/g, (_m, lead, block) => {
+    const lines = String(block).trim().split(/\n/)
+    if (lines.length < 2) return block
+    const header = lines[0].split('|').slice(1, -1).map((s) => s.trim())
+    const rows = lines.slice(2).map((ln) => ln.split('|').slice(1, -1).map((s) => s.trim()))
+    const thead = `<thead><tr>${header.map((h) => `<th>${inlineToHtml(h)}</th>`).join('')}</tr></thead>`
+    const tbody = `<tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${inlineToHtml(c)}</td>`).join('')}</tr>`).join('')}</tbody>`
+    return `${lead}<table>${thead}${tbody}</table>`
+  })
+
+  // Unordered / Task lists with 2-space nesting
+  src = src.replace(/(^|\n)((?:[ \t]*[-*]\s+.*\n?)+)/g, (_m, lead, block) => {
+    const lines = String(block).split(/\n/).filter(Boolean)
+    type Frame = { task: boolean; indent: number; items: string[] }
+    const stack: Frame[] = []
+    let html = ''
+    const pushRendered = (f: Frame) => `<ul${f.task ? ' class="task-list"' : ''}>${f.items.join('')}</ul>`
+    for (const line of lines) {
+      const m = line.match(/^(\s*)([-*])\s+(.*)$/)
+      if (!m) continue
+      const indent = Math.floor((m[1] ?? '').replace(/\t/g, '  ').length / 2)
+      const content = m[3]
+      const taskMatch = content.match(/^\[([ xX])\]\s+(.*)$/)
+      const isTask = Boolean(taskMatch)
+      const text = isTask ? taskMatch![2] : content
+      while (stack.length && stack[stack.length - 1].indent > indent) {
+        const f = stack.pop()!
+        const rendered = pushRendered(f)
+        if (stack.length) stack[stack.length - 1].items.push(rendered)
+        else html += rendered
+      }
+      if (!stack.length || stack[stack.length - 1].indent < indent) {
+        stack.push({ task: isTask, indent, items: [] })
+      }
+      const f = stack[stack.length - 1]
+      const li = isTask
+        ? `<li data-type="taskItem"><label><input type="checkbox" ${taskMatch![1].toLowerCase() === 'x' ? 'checked' : ''}/></label><div>${inlineToHtml(text)}</div></li>`
+        : `<li>${inlineToHtml(text)}</li>`
+      f.items.push(li)
+    }
+    while (stack.length) {
+      const f = stack.pop()!
+      const rendered = pushRendered(f)
+      if (stack.length) stack[stack.length - 1].items.push(rendered)
+      else html += rendered
+    }
+    return lead + html
   })
 
   // Horizontal rule
@@ -60,7 +90,7 @@ export const markdownToHtml = (md: string): string => {
     .split(/\n{2,}/)
     .map((para) => {
       // Already contains block tags? leave as-is
-      if (/(<h\d|<pre>|<ul>|<ol>|<blockquote>)/.test(para)) return para
+      if (/(<h\d|<pre>|<ul>|<ol>|<blockquote>|<table>)/.test(para)) return para
       const lines = para
         .split(/\n/)
         .map((l) => l.trim())
@@ -76,6 +106,7 @@ export const markdownToHtml = (md: string): string => {
     .replace(/<p>(\s*<ol[\s\S]*?<\/ol>)<\/p>/g, '$1')
     .replace(/<p>(\s*<blockquote>[\s\S]*?<\/blockquote>)<\/p>/g, '$1')
     .replace(/<p>\s*(<hr\/>)+\s*<\/p>/g, '$1')
+    .replace(/<p>(\s*<table[\s\S]*?<\/table>)<\/p>/g, '$1')
 
   return src
 }
