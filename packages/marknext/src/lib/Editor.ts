@@ -360,17 +360,21 @@ export class Editor {
       .mx-editor h2 { font-size: 1.5em; margin: 0.75em 0 0.4em; font-weight: 600; line-height: 1.3; }
       .mx-editor h3 { font-size: 1.25em; margin: 0.6em 0 0.3em; font-weight: 600; line-height: 1.35; }
       .mx-editor p { margin: 0.5em 0; }
+      .mx-editor ul, .mx-editor ol { padding-left: 1.25em; margin: 0.4em 0; }
+      .mx-editor ul ul, .mx-editor ul ol, .mx-editor ol ul, .mx-editor ol ol { padding-left: 1.25em; }
       .mx-editor a { color: #2563eb; text-decoration: none; }
       .mx-editor a:hover { text-decoration: underline; }
       .mx-editor pre { background: #f5f7fa; color: #0f172a; padding: 12px; border-radius: 8px; overflow: auto; }
       .mx-editor code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.95em; }
       .mx-editor hr { border: 0; height: 1px; background: #cbd5e1; margin: 16px 0; }
       .mx-editor blockquote { border-left: 4px solid #e5e7eb; padding-left: 12px; color: #475569; margin: 8px 0; background: #f9fafb; }
-      .mx-editor ul.task-list { list-style: none; padding-left: 0; }
+      .mx-editor ul.task-list { list-style: none; padding-left: 1.25em; }
       .mx-editor ul.task-list li { display: flex; gap: 8px; align-items: center; }
-      .mx-editor ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+      .mx-editor ul[data-type="taskList"] { list-style: none; padding-left: 1.25em; }
       .mx-editor ul[data-type="taskList"] li { list-style: none; display: flex; gap: 8px; align-items: center; }
-      .mx-editor ul[data-type="taskList"] input[type="checkbox"] { margin: 0; }
+      .mx-editor li[data-type="taskItem"] > label { display: flex; align-items: center; gap: 8px; width: 100%; }
+      .mx-editor li[data-type="taskItem"] > label > input[type="checkbox"] { margin: 0 6px 0 2px; }
+      .mx-editor li[data-type="taskItem"] > label > div { flex: 1 1 auto; min-height: 1.4em; }
       .mx-editor table { border-collapse: collapse; width: 100%; margin: 8px 0; }
       .mx-editor th, .mx-editor td { border: 1px solid #e2e8f0; padding: 6px 8px; }
       .mx-editor th { background: #f1f5f9; }

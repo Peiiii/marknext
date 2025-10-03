@@ -25,9 +25,17 @@ export function CodeBlockToolbar({ editor }: Props) {
     }
     if (depth != null) {
       const from = $from.before(depth)
-      const view: { coordsAtPos: (pos: number) => { left: number; top: number } } = (tiptap as unknown as { view: { coordsAtPos: (pos: number) => { left: number; top: number } } }).view
-      const coords = view.coordsAtPos(from + 1)
-      setPos({ x: coords.left, y: coords.top - 8 })
+      const view = (tiptap as unknown as { view: { coordsAtPos: (pos: number) => { left: number; top: number; bottom: number; right: number }, nodeDOM: (pos: number) => Node } }).view
+      const dom = view.nodeDOM(from) as HTMLElement
+      if (dom && dom.getBoundingClientRect) {
+        const rect = dom.getBoundingClientRect()
+        const left = Math.min(rect.right - 120, Math.max(rect.left + 8, 8))
+        const top = Math.max(8, rect.top - 34)
+        setPos({ x: left, y: top })
+      } else {
+        const coords = view.coordsAtPos(from + 1)
+        setPos({ x: coords.left, y: Math.max(8, coords.top - 34) })
+      }
       const attrs = $from.node(depth).attrs as { language?: string }
       setLang(attrs.language || 'plaintext')
     }
@@ -48,25 +56,29 @@ export function CodeBlockToolbar({ editor }: Props) {
   return (
     <div
       ref={ref}
-      style={{ position: 'fixed', left: pos.x, top: pos.y, background: '#111827', color: '#e5e7eb', borderRadius: 8, padding: 6, display: 'flex', gap: 6, zIndex: 60 }}
-      onMouseDown={(e) => e.preventDefault()}
+      style={{ position: 'fixed', left: pos.x, top: pos.y, zIndex: 60, display: 'flex' }}
     >
-      <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontSize: 12, opacity: 0.8 }}>Language</span>
-        <select
-          value={lang}
-          onChange={(e) => {
-            const v = e.target.value
-            setLang(v)
-            tiptap.chain().focus().updateAttributes('codeBlock', { language: v === 'plaintext' ? null : v }).run()
-          }}
-          style={{ background: '#1f2937', color: '#e5e7eb', border: '1px solid #374151', borderRadius: 6, padding: '2px 6px' }}
-        >
-          {LANGS.map((l) => (
-            <option key={l} value={l}>{l}</option>
-          ))}
-        </select>
-      </label>
+      <select
+        value={lang}
+        onChange={(e) => {
+          const v = e.target.value
+          setLang(v)
+          tiptap.chain().focus().updateAttributes('codeBlock', { language: v === 'plaintext' ? null : v }).run()
+        }}
+        style={{
+          background: '#ffffff',
+          color: '#0f172a',
+          border: '1px solid #e5e7eb',
+          borderRadius: 6,
+          padding: '2px 6px',
+          fontSize: 12,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+        }}
+      >
+        {LANGS.map((l) => (
+          <option key={l} value={l}>{l}</option>
+        ))}
+      </select>
     </div>
   )
 }
