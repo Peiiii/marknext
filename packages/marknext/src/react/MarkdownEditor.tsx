@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react'
 import { Editor } from '../lib/Editor'
 import type { EditorExtension, EditorOptions } from '../lib/types'
-import { linksExtension } from '../index'
+// TipTap provides link mark; custom linksExtension no longer used by default
 import { SlashMenu } from './SlashMenu'
 import { SelectionBubble } from './SelectionBubble'
 
@@ -31,7 +31,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
         element: containerRef.current,
         initialMarkdown: props.defaultMarkdown ?? '',
         placeholder: props.placeholder ?? 'Start typing...',
-        extensions: props.extensions ?? [linksExtension],
+        extensions: props.extensions ?? [],
       } satisfies EditorOptions)
       editorRef.current = editor
       const off = editor.on('update', ({ markdown }) => {

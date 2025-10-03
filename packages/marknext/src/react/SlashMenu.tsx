@@ -48,11 +48,11 @@ export function SlashMenu({ editor }: SlashMenuProps) {
       if (e.key === '/') {
         const sel = tiptap.state.selection
         const { from } = sel
-        slashPosRef.current = from
-        const domSel = window.getSelection()
-        if (!domSel || domSel.rangeCount === 0) return
-        const rect = domSel.getRangeAt(0).getBoundingClientRect()
-        setPos({ x: rect.left, y: rect.top + rect.height })
+        // Predict position after '/' insertion
+        const start = from + 1
+        slashPosRef.current = start
+        const coords = tiptap.view.coordsAtPos(start)
+        setPos({ x: coords.left, y: coords.bottom })
         setFilter('')
         setSelIndex(0)
         setOpen(true)
@@ -87,6 +87,7 @@ export function SlashMenu({ editor }: SlashMenuProps) {
       document.removeEventListener('keydown', onKeyDown, true)
       document.removeEventListener('mousedown', onClick, true)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, filtered, selIndex, root, editor])
 
   const apply = (id: string) => {

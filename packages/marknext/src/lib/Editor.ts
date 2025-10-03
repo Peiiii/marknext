@@ -277,6 +277,12 @@ export class Editor {
       if (!href) return false
       return this.#tiptap.chain().focus().setImage({ src: href }).run()
     } })
+    this.registerCommand({ id: 'insertLink', label: 'Insert Link', run: () => {
+      const href = window.prompt('Link URL')
+      if (!href) return false
+      return this.#tiptap.chain().focus().extendMarkRange('link').setLink({ href }).run()
+    } })
+    this.registerCommand({ id: 'unsetLink', label: 'Remove Link', run: () => this.#tiptap.chain().focus().unsetLink().run() })
     this.registerCommand({ id: 'insertTable', label: 'Insert Table', run: () => this.#tiptap.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() })
     this.registerCommand({ id: 'addRowAfter', label: 'Add Row After', run: () => this.#tiptap.chain().focus().addRowAfter().run() })
     this.registerCommand({ id: 'addColumnAfter', label: 'Add Column After', run: () => this.#tiptap.chain().focus().addColumnAfter().run() })
@@ -318,25 +324,34 @@ export class Editor {
     const style = document.createElement('style')
     style.id = 'marknext-base-styles'
     style.textContent = `
-      .mx-editor { min-height: 240px; outline: none; line-height: 1.7; font-size: 16px; text-align: left; }
-      .mx-editor:empty:before { content: attr(data-placeholder); opacity: 0.6; }
+      .mx-editor { min-height: 240px; outline: none; line-height: 1.7; font-size: 16px; color: #0f172a; background: #ffffff; text-align: left; padding: 16px 20px; max-width: 820px; margin: 24px auto; border: 1px solid #e5e7eb; border-radius: 8px; }
+      .mx-editor:empty:before { content: attr(data-placeholder); color: #94a3b8; }
       .mx-toolbar { display: flex; gap: 6px; }
-      .mx-toolbar button { padding: 4px 8px; font-size: 12px; border: 1px solid; border-radius: 6px; }
+      .mx-toolbar button { padding: 4px 8px; font-size: 12px; border: 1px solid #e5e7eb; background: #f9fafb; border-radius: 6px; }
+      .mx-toolbar button:hover { background: #f3f4f6; }
       .mx-editor h1 { font-size: 1.8em; margin: 0.8em 0 0.4em; font-weight: 700; line-height: 1.2; }
       .mx-editor h2 { font-size: 1.5em; margin: 0.75em 0 0.4em; font-weight: 600; line-height: 1.3; }
       .mx-editor h3 { font-size: 1.25em; margin: 0.6em 0 0.3em; font-weight: 600; line-height: 1.35; }
       .mx-editor p { margin: 0.5em 0; }
-      .mx-editor a { text-decoration: none; }
+      .mx-editor a { color: #2563eb; text-decoration: none; }
       .mx-editor a:hover { text-decoration: underline; }
-      .mx-editor pre { padding: 12px; border-radius: 8px; overflow: auto; }
-      .mx-editor code { padding: 1px 4px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.95em; }
-      .mx-editor hr { border: 0; height: 1px; margin: 16px 0; }
-      .mx-editor blockquote { border-left: 4px solid; padding-left: 12px; margin: 8px 0; }
+      .mx-editor pre { background: #f5f7fa; color: #0f172a; padding: 12px; border-radius: 8px; overflow: auto; }
+      .mx-editor code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.95em; }
+      .mx-editor hr { border: 0; height: 1px; background: #cbd5e1; margin: 16px 0; }
+      .mx-editor blockquote { border-left: 4px solid #e5e7eb; padding-left: 12px; color: #475569; margin: 8px 0; background: #f9fafb; }
       .mx-editor ul.task-list { list-style: none; padding-left: 0; }
       .mx-editor ul.task-list li { display: flex; gap: 8px; align-items: flex-start; }
+      .mx-editor ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+      .mx-editor ul[data-type="taskList"] li { list-style: none; display: flex; gap: 8px; align-items: flex-start; }
       .mx-editor table { border-collapse: collapse; width: 100%; margin: 8px 0; }
-      .mx-editor th, .mx-editor td { border: 1px solid; padding: 6px 8px; }
+      .mx-editor th, .mx-editor td { border: 1px solid #e2e8f0; padding: 6px 8px; }
+      .mx-editor th { background: #f1f5f9; }
+      /* Lowlight (hljs) minimal colors for light theme */
       .mx-editor pre code.hljs { background: transparent; }
+      .hljs-keyword, .hljs-selector-tag, .hljs-literal { color: #1d4ed8; }
+      .hljs-name, .hljs-attr, .hljs-attribute { color: #b91c1c; }
+      .hljs-string, .hljs-type, .hljs-number { color: #166534; }
+      .hljs-title { color: #92400e; }
     `
     document.head.appendChild(style)
   }
