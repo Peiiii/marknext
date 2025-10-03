@@ -32,9 +32,18 @@ export const markdownToHtml = (md: string): string => {
     const lines = String(block).trim().split(/\n/)
     if (lines.length < 2) return block
     const header = lines[0].split('|').slice(1, -1).map((s) => s.trim())
+    const alignSpec = lines[1].split('|').slice(1, -1).map((s) => s.trim())
+    const aligns = alignSpec.map((spec) => {
+      const left = spec.startsWith(':')
+      const right = spec.endsWith(':')
+      if (left && right) return 'center'
+      if (right) return 'right'
+      if (left) return 'left'
+      return 'left'
+    })
     const rows = lines.slice(2).map((ln) => ln.split('|').slice(1, -1).map((s) => s.trim()))
-    const thead = `<thead><tr>${header.map((h) => `<th>${inlineToHtml(h)}</th>`).join('')}</tr></thead>`
-    const tbody = `<tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${inlineToHtml(c)}</td>`).join('')}</tr>`).join('')}</tbody>`
+    const thead = `<thead><tr>${header.map((h, i) => `<th style="text-align:${aligns[i]}">${inlineToHtml(h)}</th>`).join('')}</tr></thead>`
+    const tbody = `<tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td style="text-align:${aligns[i]}">${inlineToHtml(c)}</td>`).join('')}</tr>`).join('')}</tbody>`
     return `${lead}<table>${thead}${tbody}</table>`
   })
 
