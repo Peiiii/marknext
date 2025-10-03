@@ -31,6 +31,8 @@ Welcome! This sandbox preloads a rich sample so you can try features fast.
 - [ ] Todo item
 - [x] Done item
 - [ ] Another todo
+  - [ ] Sub todo
+  - [x] Sub done
 
 ## Blockquote
 > Quote line 1

@@ -400,9 +400,10 @@ export class Editor {
       .mx-editor pre { background: #f5f7fa; color: #0f172a; padding: 12px; border-radius: 8px; overflow: auto; }
       .mx-editor code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.95em; }
       /* Code block with header */
-      .mx-codeblock { position: relative; }
-      .mx-codeblock__header { position: sticky; top: 0; display: flex; justify-content: flex-end; padding: 4px 6px; background: #eef2f7; border-bottom: 1px solid #e5e7eb; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+      .mx-codeblock { position: relative; border-radius: 8px; overflow: hidden; }
+      .mx-codeblock__header { position: sticky; top: 0; display: flex; justify-content: flex-start; padding: 6px 8px; background: #eef2f7; border-bottom: 1px solid #e5e7eb; }
       .mx-codeblock__lang { background: #ffffff; color: #0f172a; border: 1px solid #e5e7eb; border-radius: 6px; padding: 2px 6px; font-size: 12px; }
+      .mx-codeblock pre { margin: 0; border-radius: 0; }
       .mx-editor hr { border: 0; height: 1px; background: #cbd5e1; margin: 16px 0; }
       .mx-editor blockquote { border-left: 4px solid #e5e7eb; padding-left: 12px; color: #475569; margin: 8px 0; background: #f9fafb; }
       .mx-editor ul.task-list { list-style: none; padding-left: 1.25em; }
