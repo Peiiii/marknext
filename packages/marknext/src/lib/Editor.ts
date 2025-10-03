@@ -325,7 +325,10 @@ export class Editor {
     style.id = 'marknext-base-styles'
     style.textContent = `
       .mx-editor { min-height: 240px; outline: none; line-height: 1.7; font-size: 16px; color: #0f172a; background: #ffffff; text-align: left; padding: 16px 20px; max-width: 820px; margin: 24px auto; border: 1px solid #e5e7eb; border-radius: 8px; }
-      .mx-editor:empty:before { content: attr(data-placeholder); color: #94a3b8; }
+      .mx-editor:focus-within { border-color: transparent; box-shadow: none; }
+      .mx-editor .ProseMirror { caret-color: #0f172a; }
+      .mx-editor .ProseMirror:focus { outline: none; }
+      .mx-editor .ProseMirror p:empty { min-height: 1.2em; }
       .mx-toolbar { display: flex; gap: 6px; }
       .mx-toolbar button { padding: 4px 8px; font-size: 12px; border: 1px solid #e5e7eb; background: #f9fafb; border-radius: 6px; }
       .mx-toolbar button:hover { background: #f3f4f6; }
@@ -340,9 +343,10 @@ export class Editor {
       .mx-editor hr { border: 0; height: 1px; background: #cbd5e1; margin: 16px 0; }
       .mx-editor blockquote { border-left: 4px solid #e5e7eb; padding-left: 12px; color: #475569; margin: 8px 0; background: #f9fafb; }
       .mx-editor ul.task-list { list-style: none; padding-left: 0; }
-      .mx-editor ul.task-list li { display: flex; gap: 8px; align-items: flex-start; }
+      .mx-editor ul.task-list li { display: flex; gap: 8px; align-items: center; }
       .mx-editor ul[data-type="taskList"] { list-style: none; padding-left: 0; }
-      .mx-editor ul[data-type="taskList"] li { list-style: none; display: flex; gap: 8px; align-items: flex-start; }
+      .mx-editor ul[data-type="taskList"] li { list-style: none; display: flex; gap: 8px; align-items: center; }
+      .mx-editor ul[data-type="taskList"] input[type="checkbox"] { margin: 0; }
       .mx-editor table { border-collapse: collapse; width: 100%; margin: 8px 0; }
       .mx-editor th, .mx-editor td { border: 1px solid #e2e8f0; padding: 6px 8px; }
       .mx-editor th { background: #f1f5f9; }

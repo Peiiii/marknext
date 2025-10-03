@@ -20,6 +20,7 @@ const OPTIONS: Option[] = [
   { id: 'toggleTaskList', label: 'Task List' },
   { id: 'toggleBlockquote', label: 'Blockquote' },
   { id: 'toggleCodeBlock', label: 'Code Block' },
+  { id: 'setCodeBlockLanguage', label: 'Set Code Language' },
   { id: 'insertHorizontalRule', label: 'Horizontal Rule' },
   { id: 'insertImage', label: 'Image (URL)' },
   { id: 'insertTable', label: 'Table 3x3' },
@@ -30,6 +31,8 @@ export function SlashMenu({ editor }: SlashMenuProps) {
   const [filter, setFilter] = useState<string>('')
   const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [selIndex, setSelIndex] = useState<number>(0)
+  const [menuTop, setMenuTop] = useState<number>(0)
+  const [menuLeft, setMenuLeft] = useState<number>(0)
   const root = editor.getRoot()
   const menuRef = useRef<HTMLDivElement | null>(null)
   const slashPosRef = useRef<number | null>(null)
@@ -100,14 +103,25 @@ export function SlashMenu({ editor }: SlashMenuProps) {
     setOpen(false)
   }
 
+  // Recompute menu placement to avoid overflow
+  if (open && menuRef.current) {
+    const rect = menuRef.current.getBoundingClientRect()
+    const margin = 8
+    const availableBelow = window.innerHeight - pos.y
+    const top = availableBelow < rect.height + margin ? pos.y - rect.height - margin : pos.y + margin
+    const maxLeft = Math.max(8, Math.min(pos.x, window.innerWidth - rect.width - 8))
+    if (top !== menuTop) setMenuTop(top)
+    if (maxLeft !== menuLeft) setMenuLeft(maxLeft)
+  }
+
   if (!open) return null
   return (
     <div
       ref={menuRef}
       style={{
         position: 'fixed',
-        left: pos.x,
-        top: pos.y + 6,
+        left: menuLeft || pos.x,
+        top: menuTop || pos.y + 6,
         background: '#111827',
         color: '#e5e7eb',
         borderRadius: 8,

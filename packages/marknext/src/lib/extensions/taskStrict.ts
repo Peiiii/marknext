@@ -1,18 +1,23 @@
 import { wrappingInputRule } from '@tiptap/core'
 import TaskItem from '@tiptap/extension-task-item'
 
-// Only trigger on "- [ ] " or "* [ ] " at start of a line
-const strictTaskRegex = /^\s*[-*]\s\[([ xX])\]\s$/
+// Trigger at line start for: "- [ ] ", "* [ ] ", and also "[] " / "[x] "
+const strictTaskRegexBullet = /^\s*[-*]\s\[([ xX])\]\s$/
+const strictTaskRegexBare = /^\s*\[([ xX])\]\s$/
 
 export const TaskItemStrict = TaskItem.extend({
   addInputRules() {
     return [
       wrappingInputRule({
-        find: strictTaskRegex,
+        find: strictTaskRegexBullet,
+        type: this.type,
+        getAttributes: (match) => ({ checked: String(match[1]).toLowerCase() === 'x' }),
+      }),
+      wrappingInputRule({
+        find: strictTaskRegexBare,
         type: this.type,
         getAttributes: (match) => ({ checked: String(match[1]).toLowerCase() === 'x' }),
       }),
     ]
   },
 })
-
